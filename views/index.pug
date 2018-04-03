@@ -1,0 +1,11 @@
+extends layout
+
+block content
+  h1= title
+  p Welcome to #{title}
+  input#pageUrl(type='text' placeholder='URL to parse')
+  input(type='button' value='Parse' onclick='scrapPage(this)')
+
+  br
+  h1(style="color:red") Reuslt
+  div#result(style="white-space:pre;")
