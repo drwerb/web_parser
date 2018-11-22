@@ -4,6 +4,7 @@ var router = express.Router();
 var fs = require('fs');
 var request = require('request');
 var cheerio = require('cheerio');
+var sqlite3 = require('sqlite3'); //.verbose();
 
 /* GET users listing. */
 router.post('/', function(req, res, next) {
@@ -39,7 +40,26 @@ router.post('/', function(req, res, next) {
             result = "Error while getting " + url;
         }
 
-        res.send({ result: result });
+        var db = new sqlite3.Database('./db/db.sqlite3');
+         
+        db.serialize(function() {
+
+          var stmt = db.prepare("INSERT INTO categories (name, icon) VALUES (?,?)");
+          for (var i = 0; i < result.length; i++) {
+              var category = result[i];
+              stmt.run(category.title, category.image);
+          }
+          stmt.finalize();
+
+          db.each("SELECT rowid AS id, name, description FROM categories", function(err, row) {
+              console.log(row.id + ": " + row.name + ";     " + row.description);
+          });
+
+          res.send({ result: result });
+        });
+ 
+        db.close();
+
     });
 
     // To write to the system we will use the built in 'fs' library.
@@ -58,5 +78,9 @@ router.post('/', function(req, res, next) {
 
     console.log('response send');
 });
+
+function downloadImage(baseUrl, imageUrl) {
+    
+}
 
 module.exports = router;
